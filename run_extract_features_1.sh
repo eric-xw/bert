@@ -4,10 +4,10 @@ out_dir="/data1/xwang/summarization/bert/bert_output"
 
 BERT_BASE_DIR=models/uncased_L-12_H-768_A-12
 
-for filename in $(cat $input_dir/article_files_2.txt); do
+for filename in $(cat $input_dir/article_files_1.txt); do
 #for filename in $input_dir/article/*; do
     echo $(basename $filename)
-    CUDA_VISIBLE_DEVICES=2 python extract_features.py \
+    CUDA_VISIBLE_DEVICES=1 python extract_features.py \
         --input_file=$input_dir/article/$filename \
         --output_file=$out_dir/article/$filename.jsonl \
         --vocab_file=$BERT_BASE_DIR/vocab.txt \

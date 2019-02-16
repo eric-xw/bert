@@ -27,9 +27,13 @@ import modeling
 import tokenization
 import tensorflow as tf
 
+from tqdm import tqdm
+
 flags = tf.flags
 
 FLAGS = flags.FLAGS
+
+flags.DEFINE_bool("debug", False, "")
 
 flags.DEFINE_string("input_file", None, "")
 
@@ -88,13 +92,14 @@ class InputExample(object):
 class InputFeatures(object):
     """A single set of features of data."""
 
-    def __init__(self, unique_id, tokens, input_ids, input_mask, input_type_ids, orig_to_token_map=None):
+    def __init__(self, unique_id, tokens, input_ids, input_mask, input_type_ids, orig_to_token_map=None, orig=None):
         self.unique_id = unique_id
         self.tokens = tokens
         self.input_ids = input_ids
         self.input_mask = input_mask
         self.input_type_ids = input_type_ids
         self.orig_to_token_map = orig_to_token_map
+        self.orig = orig
 
 
 def input_fn_builder(features, seq_length):
@@ -250,8 +255,6 @@ def convert_examples_to_features(examples, seq_length, tokenizer):
         orig_to_token_map = []
         tokens.append("[CLS]")
 
-        # print(example.text_a)
-        # exit(1)
         for orig_token in example.text_a.split():
             orig_to_token_map.append(len(tokens))
             tokens.extend(tokenizer.tokenize(orig_token))
@@ -292,7 +295,8 @@ def convert_examples_to_features(examples, seq_length, tokenizer):
                 input_ids=input_ids,
                 input_mask=input_mask,
                 input_type_ids=input_type_ids,
-                orig_to_token_map=orig_to_token_map))
+                orig_to_token_map=orig_to_token_map,
+                orig=example.text_a))
     return features
 
 
@@ -359,8 +363,9 @@ def main(_):
     features = convert_examples_to_features(
         examples=examples, seq_length=FLAGS.max_seq_length, tokenizer=tokenizer)
 
-    print(features[0]['tokens'])
-    print(features[0]['orig_to_token_map'])
+    if FLAGS.debug:
+        print(features[0].tokens)
+        print(features[0].orig_to_token_map)
 
     unique_id_to_feature = {}
     for feature in features:
@@ -386,11 +391,13 @@ def main(_):
 
     with codecs.getwriter("utf-8")(tf.gfile.Open(FLAGS.output_file,
                                                  "w")) as writer:
-        for result in estimator.predict(input_fn, yield_single_examples=True):
+        for result in tqdm(estimator.predict(input_fn, yield_single_examples=True)):
             unique_id = int(result["unique_id"])
             feature = unique_id_to_feature[unique_id]
             output_json = collections.OrderedDict()
             output_json["linex_index"] = unique_id
+            output_json["orig_to_feature_map"] = feature.orig_to_token_map
+            output_json["orig"] = feature.orig
             all_features = []
             for (i, token) in enumerate(feature.tokens):
                 all_layers = []

@@ -4,16 +4,15 @@ out_dir="/data1/xwang/summarization/bert/bert_output"
 
 BERT_BASE_DIR=models/uncased_L-12_H-768_A-12
 
-for filename in $(cat $input_dir/article_files_2.txt); do
-#for filename in $input_dir/article/*; do
+for filename in $input_dir/highlight/*; do
     echo $(basename $filename)
-    CUDA_VISIBLE_DEVICES=2 python extract_features.py \
-        --input_file=$input_dir/article/$filename \
-        --output_file=$out_dir/article/$filename.jsonl \
+    CUDA_VISIBLE_DEVICES=3 python extract_features.py \
+        --input_file=$filename \
+        --output_file=$out_dir/highlight/$(basename $filename).jsonl \
         --vocab_file=$BERT_BASE_DIR/vocab.txt \
         --bert_config_file=$BERT_BASE_DIR/bert_config.json \
         --init_checkpoint=$BERT_BASE_DIR/bert_model.ckpt \
         --layers=-1 \
-        --max_seq_length=512 \
-        --batch_size=6
+        --max_seq_length=160 \
+        --batch_size=32
 done
