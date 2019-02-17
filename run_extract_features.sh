@@ -1,6 +1,6 @@
 # !/bin/bash
 input_dir="/data1/xwang/summarization/bert/bert_input"
-out_dir="/data1/xwang/summarization/bert/bert_output"
+out_dir="/mnt/kobe/bert_features"
 
 BERT_BASE_DIR=models/uncased_L-12_H-768_A-12
 
